@@ -1,9 +1,9 @@
 <!doctype html>
-<html lang="en">
+<html lang="zh-CN">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>TIM, WILL YOU BE MY VALENTINE?</title>
+  <title>可以成为我最好的朋友吗？</title>
   <style>
     body{
       margin:0;height:100vh;display:grid;place-items:center;
@@ -18,16 +18,17 @@
       text-align:center;position:relative;overflow:hidden;
     }
 
-    /* ✅ 顶部照片 */
-  .hero{
-  width: min(420px, 92%);
-  height: auto;            /* ← 自适应 */
-  max-height: 240px;       /* ← 限制最大高度，避免太大 */
-  object-fit: contain;
-  border-radius: 18px;
-  margin: 2px auto 14px;
-  display: block;
-}
+    /* 顶部照片 */
+    .hero{
+      width: min(420px, 92%);
+      height: auto;
+      max-height: 240px;
+      object-fit: contain;
+      border-radius: 18px;
+      margin: 2px auto 14px;
+      display: block;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.12);
+    }
 
     h1{margin:8px 0 10px;font-size:28px}
     #sub{margin:0 0 18px;color:#555}
@@ -72,15 +73,15 @@
 <body>
   <div class="card" id="card">
 
-    <!-- ✅ 一开始显示 angry.jpg -->
-    <img id="heroImg" class="hero" src="angry.jpg" alt="angry photo">
+    <!-- 一开始显示 angry.jpg -->
+    <img id="heroImg" class="hero" src="bear.jpg" alt="小熊照片">
 
-    <h1 id="title">TIM, WILL YOU BE MY VALENTINE? 💘</h1>
-    <p id="sub">Choose wisely… 😈</p>
+    <h1 id="title">可以成为我最好的朋友吗？💛</h1>
+    <p id="sub">不着急回答，我只是认真问问。</p>
 
     <div class="btns" id="btnArea">
-      <button id="yes">Yes ✅</button>
-      <button id="no">No ❌</button>
+      <button id="yes">可以 ✅</button>
+      <button id="no">不行 ❌</button>
     </div>
 
     <div class="result" id="result"></div>
@@ -88,24 +89,22 @@
     <!-- 确认弹窗 -->
     <div class="modal-backdrop" id="backdrop">
       <div class="modal">
-        <h2 id="mTitle">Are you sure?</h2>
-        <p id="mText">Really really sure?</p>
+        <h2 id="mTitle">你确定吗？</h2>
+        <p id="mText">真的确定吗？</p>
         <div class="row">
-          <button class="ghost" id="mCancel">Wait…</button>
-          <button class="hot" id="mOk">Yes, I’m sure</button>
+          <button class="ghost" id="mCancel">我再想想…</button>
+          <button class="hot" id="mOk">我确定 ✅</button>
         </div>
       </div>
     </div>
   </div>
 
   <script>
-    const card = document.getElementById("card");
     const btnArea = document.getElementById("btnArea");
     const yes = document.getElementById("yes");
     const no = document.getElementById("no");
     const result = document.getElementById("result");
-
-    const heroImg = document.getElementById("heroImg"); // ✅ 顶部图片
+    const heroImg = document.getElementById("heroImg");
 
     const backdrop = document.getElementById("backdrop");
     const mTitle = document.getElementById("mTitle");
@@ -113,25 +112,24 @@
     const mCancel = document.getElementById("mCancel");
     const mOk = document.getElementById("mOk");
 
-    // 你想要多少轮才“同意”
-const FINAL_ROUND = 9;
-let round = 0;
-    
-const prompts = [
-  { t: "Oh? You clicked YES 😏", d: "Bold choice. Let’s see if you mean it." },
-  { t: "Are you sure?", d: "No refunds. No returns. No backing out later." },
-  { t: "Oops…", d: "Kidding. You thought it’d be that easy? Adorable." },
-  { t: "Try again?", d: "Go on. Prove you’re not just panic-clicking." },
-  { t: "Plot twist:", d: "You can’t be my Valentine. (…or can you?)" },
-  { t: "Hmm.", d: "Still saying yes? You’re either brave… or hopelessly cute." },
+    // 9 轮确认
+    const FINAL_ROUND = 9;
+    let round = 0;
 
-  // softer from here
-  { t: "Okay, okay…", d: "I’m starting to believe you actually mean it." },
-  { t: "One more time.", d: "Say yes again and I’ll stop pretending I’m not smiling." },
-  { t: "Alright. Final answer?", d: "Because if it’s yes… I’m saying yes too. 💞" }
-];
+    // 友情向（温柔走心）文案：前面轻轻逗一下，后面更真诚
+    const prompts = [
+      { t: "你真的愿意吗？", d: "我不是随口问问，我是认真想和你做朋友。" },
+      { t: "再确认一下：", d: "做朋友意味着可以坦诚，也可以做自己，不用逞强。" },
+      { t: "你还愿意吗？", d: "如果你难过了，我希望你也愿意来找我说说。" },
+      { t: "继续点“确定”的话：", d: "我会把你的重要放在心上，不会敷衍你的情绪。" },
+      { t: "我有点紧张…", d: "因为我真的很珍惜能遇见你这样的人。" },
+      { t: "再往前一步：", d: "我们可以一起分享小事，也一起扛过难的部分。" },
+      { t: "差不多要相信你了。", d: "你愿意留下来，这件事本身就很温柔。" },
+      { t: "最后两次啦。", d: "谢谢你愿意把“朋友”这两个字说得这么认真。" },
+      { t: "最后确认：", d: "如果你愿意——那我也很想好好做你的朋友。💛" }
+    ];
 
-    // No 按钮逃跑（可选）
+    // No 按钮逃跑
     function placeNo() {
       const areaRect = btnArea.getBoundingClientRect();
       const noRect = no.getBoundingClientRect();
@@ -157,46 +155,48 @@ const prompts = [
       mTitle.textContent = prompts[i].t;
       mText.textContent = prompts[i].d;
 
-      // 越往后，"Yes" 越难点：按钮变小、换文案
+      // 越往后，“确定”按钮稍微变小一点（保留你的效果）
       const shrink = Math.max(0, round - 1);
       const scale = Math.max(0.72, 1 - shrink * 0.07);
       mOk.style.transform = `scale(${scale})`;
-      mOk.textContent = (round >= 4) ? "YES. I MEAN IT." : "Yes, I’m sure";
+
+      // 中文按钮文案
+      mOk.textContent = (round >= 5) ? "我真的确定 ✅" : "我确定 ✅";
 
       backdrop.classList.add("show");
     }
     function closeModal(){ backdrop.classList.remove("show"); }
 
-    // 点击 Yes：先弹出确认，N 轮后才成功
+    // 点“可以”：弹窗多轮确认
     yes.addEventListener("click", () => {
       if (round >= FINAL_ROUND) return;
       openModal();
     });
 
-    // 弹窗里的“Wait…”：关掉
+    // “我再想想”：关闭
     mCancel.addEventListener("click", () => {
       closeModal();
       placeNo();
     });
 
-    // 弹窗里的“确定”：进入下一轮或成功
+    // “我确定”：下一轮或成功
     mOk.addEventListener("click", () => {
       round++;
 
-      // 每一轮让主页面的 Yes 也更“诱导”：变大一点
+      // 每一轮让主页面的“可以”更“坚定”一点
       yes.style.transform = `scale(${1 + Math.min(round, 6) * 0.05})`;
 
       if (round >= FINAL_ROUND) {
         closeModal();
 
-        // ✅ 最后同意后换成 happy.jpg
-        heroImg.src = "happy.jpg";
-        heroImg.alt = "happy photo";
+        // 最后同意后换成 happy.jpg
+        heroImg.src = "heart.jpg";
+        heroImg.alt = "心的照片";
 
-        result.textContent = "OKAY FINE…I agree! 💞 You’re my Valentine I'll allow it 🥰";
-        document.getElementById("sub").textContent = "You passed all the rounds 😌";
+        result.textContent = "那就说好了：我们做最好的朋友。很开心认识你，也很幸运有你。💛";
+        document.getElementById("sub").textContent = "谢谢你认真回应我。以后也请多多关照。";
         no.style.display = "none";
-        yes.textContent = "Yay 🎉";
+        yes.textContent = "好呀 🎉";
         return;
       }
 
