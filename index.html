@@ -1,0 +1,213 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>TIM, WILL YOU BE MY VALENTINE?</title>
+  <style>
+    body{
+      margin:0;height:100vh;display:grid;place-items:center;
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;
+      background:linear-gradient(135deg,#ffe0ea,#fff7d6);
+    }
+    .card{
+      width:min(560px,92vw);
+      background:rgba(255,255,255,.92);
+      border-radius:24px;padding:28px 22px;
+      box-shadow:0 10px 30px rgba(0,0,0,.12);
+      text-align:center;position:relative;overflow:hidden;
+    }
+
+    /* ✅ 顶部照片 */
+  .hero{
+  width: min(420px, 92%);
+  height: auto;            /* ← 自适应 */
+  max-height: 240px;       /* ← 限制最大高度，避免太大 */
+  object-fit: contain;
+  border-radius: 18px;
+  margin: 2px auto 14px;
+  display: block;
+}
+
+    h1{margin:8px 0 10px;font-size:28px}
+    #sub{margin:0 0 18px;color:#555}
+    .btns{
+      position:relative;
+      display:flex;justify-content:center;gap:14px;flex-wrap:wrap;
+      height:62px;
+      align-items:center;
+    }
+    button{
+      border:0;padding:14px 20px;border-radius:14px;
+      font-size:16px;cursor:pointer;user-select:none;
+      box-shadow:0 6px 16px rgba(0,0,0,.12);
+      transition:transform .15s ease, box-shadow .15s ease, width .15s ease, padding .15s ease;
+      position:relative;
+    }
+    button:active{transform:scale(.98)}
+    #yes{background:#ff4d7d;color:#fff}
+    #no{background:#f1f1f1;color:#333;position:absolute}
+    .result{margin-top:18px;font-size:20px;font-weight:800;color:#ff2d67;min-height:28px}
+
+    /* 小弹窗 */
+    .modal-backdrop{
+      position:absolute;inset:0;background:rgba(0,0,0,.35);
+      display:none;align-items:center;justify-content:center;
+      padding:18px;
+    }
+    .modal-backdrop.show{display:flex}
+    .modal{
+      width:min(420px,92vw);
+      background:#fff;border-radius:18px;padding:18px 16px;
+      box-shadow:0 12px 30px rgba(0,0,0,.22);
+      text-align:left;
+    }
+    .modal h2{margin:0 0 8px;font-size:18px}
+    .modal p{margin:0 0 14px;color:#444;line-height:1.4}
+    .modal .row{display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap}
+    .modal .ghost{background:#f1f1f1;color:#333}
+    .modal .hot{background:#ff4d7d;color:#fff}
+  </style>
+</head>
+<body>
+  <div class="card" id="card">
+
+    <!-- ✅ 一开始显示 angry.jpg -->
+    <img id="heroImg" class="hero" src="angry.jpg" alt="angry photo">
+
+    <h1 id="title">TIM, WILL YOU BE MY VALENTINE? 💘</h1>
+    <p id="sub">Choose wisely… 😈</p>
+
+    <div class="btns" id="btnArea">
+      <button id="yes">Yes ✅</button>
+      <button id="no">No ❌</button>
+    </div>
+
+    <div class="result" id="result"></div>
+
+    <!-- 确认弹窗 -->
+    <div class="modal-backdrop" id="backdrop">
+      <div class="modal">
+        <h2 id="mTitle">Are you sure?</h2>
+        <p id="mText">Really really sure?</p>
+        <div class="row">
+          <button class="ghost" id="mCancel">Wait…</button>
+          <button class="hot" id="mOk">Yes, I’m sure</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const card = document.getElementById("card");
+    const btnArea = document.getElementById("btnArea");
+    const yes = document.getElementById("yes");
+    const no = document.getElementById("no");
+    const result = document.getElementById("result");
+
+    const heroImg = document.getElementById("heroImg"); // ✅ 顶部图片
+
+    const backdrop = document.getElementById("backdrop");
+    const mTitle = document.getElementById("mTitle");
+    const mText = document.getElementById("mText");
+    const mCancel = document.getElementById("mCancel");
+    const mOk = document.getElementById("mOk");
+
+    // 你想要多少轮才“同意”
+const FINAL_ROUND = 9;
+let round = 0;
+    
+const prompts = [
+  { t: "Oh? You clicked YES 😏", d: "Bold choice. Let’s see if you mean it." },
+  { t: "Are you sure?", d: "No refunds. No returns. No backing out later." },
+  { t: "Oops…", d: "Kidding. You thought it’d be that easy? Adorable." },
+  { t: "Try again?", d: "Go on. Prove you’re not just panic-clicking." },
+  { t: "Plot twist:", d: "You can’t be my Valentine. (…or can you?)" },
+  { t: "Hmm.", d: "Still saying yes? You’re either brave… or hopelessly cute." },
+
+  // softer from here
+  { t: "Okay, okay…", d: "I’m starting to believe you actually mean it." },
+  { t: "One more time.", d: "Say yes again and I’ll stop pretending I’m not smiling." },
+  { t: "Alright. Final answer?", d: "Because if it’s yes… I’m saying yes too. 💞" }
+];
+
+    // No 按钮逃跑（可选）
+    function placeNo() {
+      const areaRect = btnArea.getBoundingClientRect();
+      const noRect = no.getBoundingClientRect();
+      const maxX = Math.max(0, areaRect.width - noRect.width);
+      const maxY = Math.max(0, areaRect.height - noRect.height);
+      const x = Math.floor(Math.random() * (maxX + 1));
+      const y = Math.floor(Math.random() * (maxY + 1));
+      no.style.left = x + "px";
+      no.style.top  = y + "px";
+    }
+    window.addEventListener("load", () => {
+      no.style.left = "62%";
+      no.style.top = "0px";
+      setTimeout(placeNo, 50);
+    });
+    window.addEventListener("resize", placeNo);
+    no.addEventListener("mouseenter", placeNo);
+    no.addEventListener("click", (e) => { e.preventDefault(); placeNo(); });
+
+    // 弹窗控制
+    function openModal() {
+      const i = Math.min(round, prompts.length - 1);
+      mTitle.textContent = prompts[i].t;
+      mText.textContent = prompts[i].d;
+
+      // 越往后，"Yes" 越难点：按钮变小、换文案
+      const shrink = Math.max(0, round - 1);
+      const scale = Math.max(0.72, 1 - shrink * 0.07);
+      mOk.style.transform = `scale(${scale})`;
+      mOk.textContent = (round >= 4) ? "YES. I MEAN IT." : "Yes, I’m sure";
+
+      backdrop.classList.add("show");
+    }
+    function closeModal(){ backdrop.classList.remove("show"); }
+
+    // 点击 Yes：先弹出确认，N 轮后才成功
+    yes.addEventListener("click", () => {
+      if (round >= FINAL_ROUND) return;
+      openModal();
+    });
+
+    // 弹窗里的“Wait…”：关掉
+    mCancel.addEventListener("click", () => {
+      closeModal();
+      placeNo();
+    });
+
+    // 弹窗里的“确定”：进入下一轮或成功
+    mOk.addEventListener("click", () => {
+      round++;
+
+      // 每一轮让主页面的 Yes 也更“诱导”：变大一点
+      yes.style.transform = `scale(${1 + Math.min(round, 6) * 0.05})`;
+
+      if (round >= FINAL_ROUND) {
+        closeModal();
+
+        // ✅ 最后同意后换成 happy.jpg
+        heroImg.src = "happy.jpg";
+        heroImg.alt = "happy photo";
+
+        result.textContent = "OKAY FINE…I agree! 💞 You’re my Valentine I'll allow it 🥰";
+        document.getElementById("sub").textContent = "You passed all the rounds 😌";
+        no.style.display = "none";
+        yes.textContent = "Yay 🎉";
+        return;
+      }
+
+      openModal();
+    });
+
+    // 点击遮罩空白处也关闭（可选）
+    backdrop.addEventListener("click", (e) => {
+      if (e.target === backdrop) closeModal();
+    });
+  </script>
+</body>
+</html>
+
